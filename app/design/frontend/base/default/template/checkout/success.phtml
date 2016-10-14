@@ -1,0 +1,107 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE_AFL.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Magento to newer
+ * versions in the future. If you wish to customize Magento for your
+ * needs please refer to http://www.magentocommerce.com for more information.
+ *
+ * @category    design
+ * @package     base_default
+ * @copyright   Copyright (c) 2014 Magento Inc. (http://www.magentocommerce.com)
+ * @license     http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ */
+?>
+<div class="page-title">
+    <h1><?php echo $this->__('Your order has been received.') ?></h1>
+</div>
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+<h2 class="sub-title"><?php echo $this->__('Thank you for your purchase!') ?></h2>
+
+<?php if ($this->getOrderId()):?>
+<?php if ($this->getCanViewOrder()) :?>
+    <p><?php echo $this->__('Your order # is: %s.', sprintf('<a href="%s">%s</a>', $this->escapeHtml($this->getViewOrderUrl()), $this->escapeHtml($this->getOrderId()))) ?></p>
+<?php  else :?>
+    <p><?php echo $this->__('Your order # is: %s.', $this->escapeHtml($this->getOrderId())) ?></p>
+<?php endif;?>
+    <p><?php echo $this->__('You will receive an order confirmation email with details of your order and a link to track its progress.') ?></p>
+<?php if ($this->getCanViewOrder() && $this->getCanPrintOrder()) :?>
+    <p>
+        <?php echo $this->__('Click <a href="%s" onclick="this.target=\'_blank\'">here to print</a> a copy of your order confirmation.', $this->getPrintUrl()) ?>
+        <?php echo $this->getChildHtml() ?>
+    </p>
+<?php endif;?>
+<?php endif;?>
+
+<?php if ($this->getAgreementRefId()): ?>
+    <p><?php echo $this->__('Your billing agreement # is: %s.', sprintf('<a href="%s">%s</a>', $this->escapeHtml($this->getAgreementUrl()), $this->escapeHtml($this->getAgreementRefId())))?></p>
+<?php endif;?>
+
+<?php if ($profiles = $this->getRecurringProfiles()):?>
+<p><?php echo $this->__('Your recurring payment profiles:'); ?></p>
+<ul class="disc">
+<?php foreach($profiles as $profile):?>
+<?php $profileIdHtml = ($this->getCanViewProfiles() ? sprintf('<a href="%s">%s</a>', $this->escapeHtml($this->getProfileUrl($profile)), $this->escapeHtml($this->getObjectData($profile, 'reference_id'))) : $this->escapeHtml($this->getObjectData($profile, 'reference_id')));?>
+    <li><?php echo $this->__('Payment profile # %s: "%s".', $profileIdHtml, $this->escapeHtml($this->getObjectData($profile, 'schedule_description')))?></li>
+<?php endforeach;?>
+</ul>
+<?php endif;?>
+
+<div class="buttons-set">
+    <button type="button" class="button" title="<?php echo $this->__('Continue Shopping') ?>" onclick="window.location='<?php echo $this->getUrl() ?>'"><span><span><?php echo $this->__('Continue Shopping') ?></span></span></button>
+</div>
+
+<!-- START Google Certified Shops Order -->
+<?php
+    $orderId = $this->getOrderId();
+    $order = Mage::getModel('sales/order')->loadByIncrementId($orderId);
+    $address = $order->getShippingAddress();
+    $backorder = false; // some backorder logic
+    $download = false; // some download logic	
+	$today = Zend_Date::now();
+	$afterfiveday = $today->addDay(5); // estimated delivery ?>
+
+<div id="gts-order" style="display:none;" translate="no">
+
+	<!-- start order and merchant information -->
+	<span id="gts-o-id"><?php echo $orderId; ?></span>
+	<span id="gts-o-domain">--WEBSITE NAME HERE "www.magtuts.co.in"--</span>
+	<span id="gts-o-email"><?php echo $order->getCustomerEmail(); ?></span>
+	<span id="gts-o-country"><?php echo htmlentities($address->getCountryId()); ?></span>
+	<span id="gts-o-currency">--CURRENCY CODE "GBP"--</span>
+	<span id="gts-o-total"><?php echo round($order->getGrandTotal(),2); ?></span>
+	<span id="gts-o-discounts">-<?php echo round($order->getDiscountAmount(),2); ?></span>
+	<span id="gts-o-shipping-total"><?php echo round($order->getShippingAmount(),2); ?></span>
+	<span id="gts-o-tax-total"><?php echo round($order->getTaxAmount(),2); ?></span>
+	<span id="gts-o-est-ship-date"><?php print $afterfiveday->toString('YYYY-MM-dd');; ?></span>
+	<span id="gts-o-has-preorder"><?php echo $backorder ? 'Y' : 'N'; ?></span>
+	<span id="gts-o-has-digital"><?php echo $download ? 'Y' : 'N'; ?></span>
+	<!-- end order and merchant information -->
+
+    <!-- start repeated item specific information -->
+	<?php foreach ($order->getAllItems() as $item): ?>
+		<span class="gts-item">
+		<span class="gts-i-name"><?php echo htmlentities($item->getName()); ?></span>
+		<span class="gts-i-price"><?php echo round($item->getBasePrice(),2); ?></span>
+		<span class="gts-i-quantity"><?php echo (int)$item->getQtyOrdered(); ?></span>
+		<span class="gts-i-prodsearch-id"><?php echo $this->escapeHtml($item->getSku()); ?></span>
+		<span class="gts-i-prodsearch-store-id">--GOOGLE STORE ID HERE "XXXXX"--</span>
+		<span class="gts-i-prodsearch-country">--COUNTRY CODE "GB"--</span>
+		<span class="gts-i-prodsearch-language">--LANGUAGE CODE HERE "en"--</span>
+		</span>
+	<?php endforeach; ?>
+    <!-- end repeated item specific information -->
+</div>
+<!-- END Google Certified Shops Order -->
